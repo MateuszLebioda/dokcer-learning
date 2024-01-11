@@ -1,0 +1,46 @@
+version: "3"
+services:
+  nginx:
+    restart: always
+    build: ./nginx
+    ports:
+      - "3050:80"
+  postgres:
+    image: postgres:12-alpine
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: ${PG_PASSWORD}
+  redis:
+    image: redis:7.0-alpine
+  express:
+    build:
+      context: ./express
+      dockerfile: Dockerfile.dev
+    volumes:
+      - /usr/app/node_modules
+      - ./express:/usr/app
+    environment:
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+      - PG_USER=${PG_USER}
+      - PG_HOST=${PG_HOST}
+      - PG_DATABASE=${PG_DATABASE}
+      - PG_PASSWORD=${PG_PASSWORD}
+      - PG_PORT=${PG_PORT}
+  react:
+    build:
+      context: ./react
+      dockerfile: Dockerfile.dev
+    volumes:
+      - /usr/app/node_modules
+      - ./react:/usr/app
+  worker:
+    build:
+      context: ./worker
+      dockerfile: Dockerfile.dev
+    volumes:
+      - /usr/app/node_modules
+      - ./worker:/usr/app
+    environment:
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
